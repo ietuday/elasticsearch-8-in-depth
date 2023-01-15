@@ -1,0 +1,98 @@
+version: '3.5'
+
+services:
+
+  es1:
+    container_name: es1
+    build:
+      context: es1/
+    volumes:
+      - ./es1/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    # comment/uncomment to persist ES data
+      #- esdata1:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+    networks:
+      - es_local_dev
+
+  es2:
+    container_name: es2
+    build:
+      context: es2/
+    volumes:
+      - ./es2/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+    networks:
+      - es_local_dev
+    depends_on:
+      - es1
+
+  es3:
+    container_name: es3
+    build:
+      context: es3/
+    volumes:
+      - ./es3/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+    networks:
+      - es_local_dev
+    depends_on:
+      - es1
+
+  kibana:
+    container_name: kibana
+    build:
+      context: kibana/
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - es_local_dev
+    depends_on:
+      - es1
+
+  logstash:
+    container_name: logstash
+    build:
+      context: logstash/
+    volumes:
+      - ./logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./sample_data/blogs.csv:/usr/share/logstash/blogs.csv:ro
+    ports:
+      - "5000:5000"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - es_local_dev
+    depends_on:
+      - es1
+
+  filebeat:
+    container_name: filebeat
+    build:
+      context: filebeat/
+    command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
+    # If the host system has logs at "/var/log", mount them at "/mnt/log"
+    # inside the container, where Filebeat can find them.
+    # volumes: ['/var/log:/mnt/log:ro']
+    volumes:
+      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./sample_data/elastic_blog_curated_access_logs:/usr/share/filebeat/logs:ro
+    networks:
+      - es_local_dev
+    depends_on:
+      - es1
+
+networks:
+  es_local_dev:
+    driver: bridge
+
+volumes:
+  esdata1:
+    driver: local    

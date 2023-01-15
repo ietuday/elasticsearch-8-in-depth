@@ -1,0 +1,18 @@
+---
+## Default Elasticsearch configuration from elasticsearch-docker.
+## from https://github.com/elastic/elasticsearch-docker/blob/master/build/elasticsearch/elasticsearch.yml
+#
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+
+node.name: es2
+
+#node.master: true
+#node.ingest: false
+#node.data: true
+
+#node.attr.temp: hot
+#node.attr.zone: 2
+
+discovery.zen.ping.unicast.hosts: ["es1", "es2", "es3"]
+cluster.initial_master_nodes: ["es1", "es2", "es3"]
