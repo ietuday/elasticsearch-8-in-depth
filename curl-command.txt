@@ -1,0 +1,41 @@
+1. sudo apt install curl
+2. curl -XGET 127.0.0.1:9200
+3. sudo wget https://media.sundog-soft.com/es8/shakes-mapping.json
+4. curl -H "Content-Type: application/json" -XPUT 127.0.0.1:9200/shakespeare --data-binary @shakes-mapping.json 
+5. 
+PUT /shakespeare
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 2
+  },
+  "mappings" : {
+		"properties" : {
+			"speaker" : {"type": "keyword" },
+			"play_name" : {"type": "keyword" },
+			"line_id" : { "type" : "integer" },
+			"speech_number" : { "type" : "integer" }
+		}
+	}
+}
+
+6.sudo wget https://media.sundog-soft.com/es8/shakespeare_8.0.json
+7. curl -H "Content-Type: application/json" -XPUT '127.0.0.1:9200/shakespeare/_bulk' --data-binary @shakespeare_8.0.json
+8. curl -H "Content-Type: application/json" -XGET '127.0.0.1:9200/shakespeare/_search?pretty' -d '
+{
+  "query": {
+    "match_all": {}
+  }
+}'
+9. curl -H "Content-Type: application/json" -XPUT '127.0.0.1:9200/movies' -d '
+ {
+        "mapping": {
+            "properties": {
+                  "year": {
+                        "type": "date"
+                    }
+              }
+        }
+ }'
+
+ 10. curl -H "Content-Type: application/json" -XPUT '127.0.0.1:9200/movies/_bulk' --data-binary @movies.json
